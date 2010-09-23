@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<server>
-  <name>fakepear.alpeh-null.tv</name>
-  <summary>Fake PEAR channel</summary>
-  <alias>fakepear</alias>
-  <url>http://fakepear.alpeh-null.tv</url>
-</server>
