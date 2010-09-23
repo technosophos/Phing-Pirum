@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="http://fakepear.alpeh-null.tv">
+    <title>Fake PEAR channel Latest Releases</title>
+    <link href="http://fakepear.alpeh-null.tv" />
+    <author>
+        <name>http://fakepear.alpeh-null.tv</name>
+    </author>
+
+
+</feed>

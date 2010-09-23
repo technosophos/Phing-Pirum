@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<project 
+  name="Phing-Pirum" 
+  description="Phing tasks for Pirum integration."
+  default="ftest">
+<!--
+This is the Phing build file for Phing-Pirum.
+
+Phing is a build tool. Learn more about it at http://phing.info.
+
+Copyright (c) 2010, Matt Butcher, some rights reserved.
+
+License:
+Phing-Pirum is released under an MIT license. See COPYING-MIT.txt for details.
+-->
+  <target name="info" description="Information on using the Phing-Pirum Phing build.">
+    <echo>
+To build:
+
+  phing build -Dversion=1.0.0
+  
+To run tests:
+
+  phing test
+  
+To emit a sample Phing-Pirum config:
+
+  phing tasks
+
+The end.
+    </echo>
+  </target>
+
+
+  <!-- Global properties -->
+  <property name="srcdir" value="./src"/>
+  <property name="testdir" value="./tests"/>
+  <property name="builddir" value="./bin/build"/>
+  <property name="docsdir" value="./doc"/>
+  <property name="packagedir" value="./dist"/>
+  
+  <taskdef classname="src.Task.PirumBuildTask" name="pirumbuild"/>
+  <taskdef classname="src.Task.PirumAddTask" name="pirumadd"/>
+  
+  <!-- Files that must be included in the release -->
+  <!-- include name="INSTALL.mdown"/ -->
+  
+  <fileset id="licensefiles" dir=".">
+    <include name="README.md"/>
+    <include name="COPYING-MIT.txt"/>
+  </fileset>
+  
+  <!-- Files to be treated as source code -->
+  <fileset id="sourcecode" dir="${srcdir}">
+    <include name="**/*.php" />
+  </fileset>
+  
+  <!-- Unit tests and auxilliary files -->
+  <fileset id="unittests" dir="${testdir}/Tests">
+    <include name="**/*Test.php" />
+  </fileset>
+  
+  <!-- Examples -->
+  <fileset id="examplecode" dir="./examples">
+    <include name="**/*" />
+  </fileset>
+  
+  <!-- DocBook Tutorials -->
+  <fileset id="tutorials" dir="./tutorials">
+    <include name="**/*" />
+  </fileset>
+  
+  <!-- Documentation -->
+  <fileset id="docs" dir="./doc">
+    <include name="**/*" />
+  </fileset>
+  
+  <!-- BUILD: The primary build target. -->
+  <target name="build" depends="lint, setup, docBuild, fullBuild"
+    description="Generate docs, minimal, and full builds and then creates packages."
+    ></target>
+  
+  <!-- Target that should be run always. -->
+  <target name="setup" description="Run required configuration for any build.">
+    <tstamp/>
+    <!-- Default version -->
+    <property name="version" value="dev-${DSTAMP}"/>
+  </target>
+  
+  <!-- Build the full package -->
+  <target name="fullBuild" description="Full Phing-Pirum build, including docs."
+    depends="setup">
+    <property name="releasedir" value="${builddir}/PhingPirum-${version}" override="true"/>
+    <delete dir="${releasedir}" />
+    
+    <!-- Make all necessary directories. -->
+    <mkdir dir="${releasedir}"/>
+    <mkdir dir="${releasedir}/src"/>
+    <mkdir dir="${releasedir}/examples"/>
+    <mkdir dir="${releasedir}/tests"/>
+    <mkdir dir="${releasedir}/tutorials"/>
+    <mkdir dir="${releasedir}/doc"/>
+    
+    <!-- Copy license files. -->
+    <copy todir="${releasedir}">
+      <fileset refid="licensefiles"/>
+    </copy>
+    
+    <!-- Copy source code, doing token replacement on version. -->
+    <copy todir="${releasedir}/src">
+      <filterchain>
+        <replacetokens begintoken="@" endtoken="@">
+          <token key="UNSTABLE" value="${version}"/>
+        </replacetokens>
+      </filterchain>
+      <fileset refid="sourcecode"/>
+    </copy>
+
+    <!-- Copy examples. -->
+    <copy todir="${releasedir}/examples">
+      <fileset refid="examplecode"/>
+    </copy>
+    
+    <!-- Copy tests. -->
+    <copy todir="${releasedir}/tests">
+      <fileset refid="unittests"/>
+    </copy>
+    
+    <!-- Copy tutorials -->
+    <copy todir="${releasedir}/tutorials">
+      <fileset refid="tutorials"/>
+    </copy>
+    
+    <!-- Copy documentation --> 
+    <copy todir="${releasedir}/doc">
+      <fileset refid="docs"/>
+    </copy>
+    
+    <!-- Create tgz and zip versions. -->
+    <tar destfile="${packagedir}/PhingPirum-${version}.tgz" compression="gzip">
+      <fileset dir="${builddir}">
+        <include name="Phing-Pirum-${version}/**/*"/>
+      </fileset>
+    </tar>
+    <zip destfile="${packagedir}/PhingPirum-${version}.zip" basedir="${releasedir}"/>
+  </target>
+  
+  <!-- Check syntax -->
+  <target name="lint" description="Check syntax of source.">
+    <phplint>
+      <fileset refid="sourcecode" />
+    </phplint>
+  </target>
+  
+  <!-- Build documentation -->
+  <target name="doc" depends="lint,setup" description="Generate API docs.">
+    <delete dir="${docsdir}"/>
+    <phpdoc title="Phing-Pirum ${version}"
+      sourcecode="yes"
+      destdir="${docsdir}"
+      output="HTML:Smarty:" 
+      defaultcategoryname="Phing-Pirum"
+      defaultpackagename="Phing-Pirum"
+      examplesdir="examples"
+      quiet="true"
+      >
+      <!-- 
+        output="HTML:frames:phphtmllib"
+      -->
+      <fileset refid="sourcecode"/>
+      <fileset refid="tutorials"/>
+      <fileset refid="examplecode"/>
+      <projdocfileset dir=".">
+        <include name="README.mdown"/>
+        <include name="INSTALL.mdown"/>
+        <include name="COPYING-MIT.txt"/>
+      </projdocfileset>
+    </phpdoc>
+    <!-- Need to replace version information in generated documentation -->
+    <reflexive>
+      <fileset refid="docs"/>
+      <filterchain>
+        <replacetokens begintoken="@" endtoken="@">
+          <token key="UNSTABLE" value="${version}"/>
+        </replacetokens>
+      </filterchain>
+    </reflexive>
+  </target>
+
+  <!-- Run a full test and format an HTML report -->
+  <target name="test" depends="lint" description="Run full tests">
+    <!-- Trial by fire. -->
+    <pirumbuild targetdir="${testdir}/fakepear" />
+    
+    <!--
+    <phpunit>
+      <formatter todir="tests/reports" type="xml"/>
+      <batchtest>
+        <fileset dir="tests/Tests">
+          <include name="**/*Test.php"/>
+        </fileset>
+      </batchtest>
+    </phpunit>
+    <phpunitreport 
+      infile="tests/reports/testsuites.xml" 
+      format="frames" 
+      todir="tests/reports/html" 
+      />
+      -->
+  </target>
+  
+  <target name="docBuild" description="Build a package containing just docs." 
+    depends="setup,doc">
+    <property name="releasedir" value="${builddir}/Phing-Pirum-${version}-docs"/>
+    <delete dir="${releasedir}" />
+    
+    <!-- Make all necessary directories. -->
+    <mkdir dir="${releasedir}"/>
+    
+    <!-- Copy license files. -->
+    <copy todir="${releasedir}">
+      <fileset refid="licensefiles"/>
+    </copy>
+        
+    <!-- Copy documentation --> 
+    <copy todir="${releasedir}/doc">
+      <fileset refid="docs"/>
+    </copy>
+    
+    <!-- Create tgz and zip versions. -->
+    <tar destfile="${packagedir}/PhingPirum-${version}-docs.tgz" compression="gzip">
+      <fileset dir="${builddir}">
+        <include name="PhingPirum-${version}-docs/**/*"/>
+      </fileset>
+    </tar>
+    <zip destfile="${packagedir}/PhingPirum-${version}-docs.zip" basedir="${releasedir}"/>
+  </target>
+
+  
+</project>
