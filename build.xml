@@ -189,9 +189,13 @@ The end.
 
   <!-- Run a full test and format an HTML report -->
   <target name="test" depends="lint" description="Run full tests">
+    
+    <copy file="${testdir}/pirum.xml" tofile="${testdir}/fakepear/pirum.xml"/>
+    
     <!-- Trial by fire. -->
     <pirumbuild targetdir="${testdir}/fakepear" />
     
+    <!-- pirumadd targetdir="${testdir}/fakepear" packagefile="${testdir}/LibRIS-1.0.0.tgz"/ -->
     <!--
     <phpunit>
       <formatter todir="tests/reports" type="xml"/>
@@ -207,6 +211,11 @@ The end.
       todir="tests/reports/html" 
       />
       -->
+      <delete>
+        <fileset dir="${testdir}/fakepear">
+          <include name="**/**"/>
+        </fileset>
+      </delete>
   </target>
   
   <target name="docBuild" description="Build a package containing just docs." 
