@@ -30,6 +30,24 @@ To emit a sample Phing-Pirum config:
 The end.
     </echo>
   </target>
+  
+  <target name="tasks">
+    <echo><![CDATA[
+      <!--
+      Set the include path to get to our tasks. Then load our tasks.
+      
+      The includepath is only needed if Phing reports that it can't find pirumbuild/pirumadd.
+      -->
+      <!-- includepath classpath="path/to/PhingPirum"/ -->
+      <taskdef classname="PhingPirum.Task.PirumBuildTask" name="pirumbuild"/>
+      <taskdef classname="PhingPirum.Task.PirumAddTask" name="pirumadd"/>
+    ]]></echo>
+  </target>
+
+  <!--
+  FROM HERE...
+  All tasks are for actual building and testing of Phing-Pirum.
+  -->
 
 
   <!-- Global properties -->
@@ -39,8 +57,10 @@ The end.
   <property name="docsdir" value="./doc"/>
   <property name="packagedir" value="./dist"/>
   
-  <taskdef classname="src.Task.PirumBuildTask" name="pirumbuild"/>
-  <taskdef classname="src.Task.PirumAddTask" name="pirumadd"/>
+  <!-- Set the include path to get to our tasks. Then load our tasks. -->
+  <includepath classpath="./src"/>
+  <taskdef classname="PhingPirum.Task.PirumBuildTask" name="pirumbuild"/>
+  <taskdef classname="PhingPirum.Task.PirumAddTask" name="pirumadd"/>
   
   <!-- Files that must be included in the release -->
   <!-- include name="INSTALL.mdown"/ -->
@@ -190,32 +210,21 @@ The end.
   <!-- Run a full test and format an HTML report -->
   <target name="test" depends="lint" description="Run full tests">
     
+    <!-- Get a base pirum.xml file. -->
     <copy file="${testdir}/pirum.xml" tofile="${testdir}/fakepear/pirum.xml"/>
     
-    <!-- Trial by fire. -->
+    <!-- Test creating a channel. -->
     <pirumbuild targetdir="${testdir}/fakepear" />
     
-    <!-- pirumadd targetdir="${testdir}/fakepear" packagefile="${testdir}/LibRIS-1.0.0.tgz"/ -->
-    <!--
-    <phpunit>
-      <formatter todir="tests/reports" type="xml"/>
-      <batchtest>
-        <fileset dir="tests/Tests">
-          <include name="**/*Test.php"/>
-        </fileset>
-      </batchtest>
-    </phpunit>
-    <phpunitreport 
-      infile="tests/reports/testsuites.xml" 
-      format="frames" 
-      todir="tests/reports/html" 
-      />
-      -->
-      <delete>
-        <fileset dir="${testdir}/fakepear">
-          <include name="**/**"/>
-        </fileset>
-      </delete>
+    <!-- Test adding a known-good package -->
+    <pirumadd targetdir="${testdir}/fakepear" packagefile="${testdir}/LibRIS-1.0.0.tgz"/>
+    
+    <!-- Clean up. -->
+    <delete>
+      <fileset dir="${testdir}/fakepear">
+        <include name="**/**"/>
+      </fileset>
+    </delete>
   </target>
   
   <target name="docBuild" description="Build a package containing just docs." 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <server>
   <!-- This is a fake Pirum channel for testing only. -->
-  <name>fakepear.querypath.org</name>
+  <name>pear.querypath.org</name>
   <summary>Fake PEAR channel</summary>
-  <alias>fakepear</alias>
-  <url>http://fakepear.querypath.org/</url>
+  <alias>querypath</alias>
+  <url>http://pear.querypath.org/</url>
 </server>
