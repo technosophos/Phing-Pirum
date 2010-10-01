@@ -11,6 +11,10 @@ Via Pear:
 
 From there, you should be able to import the Pirum tasks in Phing build.xml files.
 
+PRERELEASE:
+
+If  you are using this in its pre-1.0.0 state, you may need to install from GitHub by cloning this repository. You may also be able to get a download from [the project download page](http://github.com/technosophos/Phing-Pirum/downloads).
+
 ## Usage
 
 Using Phing-Pirum is simple. Once Phing-Pirum is installed, you simply need to make the tasks available in your `build.xml` file, and then you can use them.
