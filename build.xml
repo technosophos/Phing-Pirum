@@ -137,8 +137,8 @@ The end.
        
        <option name="baseinstalldir" value="PhingPirum"/>
 
-       <option name="summary" value="Phing integration with Pirum"/>
-       <option name="description" value="Provides Pirum tasks for Phing. Useful for post-processing HTML and XML during builds. http://pirum-project.org"/>
+       <option name="summary" value="Pirum tasks for Phing"/>
+       <option name="description" value="Provides Pirum integration with Phing. Easily build PEAR channels and add packages to your channels. http://pirum-project.org"/>
        <option name="apiversion" value="${version}"/>
        <option name="apistability" value="stable"/>
        <option name="releaseversion" value="${version}"/>
@@ -147,7 +147,7 @@ The end.
        <option name="phpdep" value="5.0.0"/>
        <option name="pearinstallerdep" value="1.4.6"/>
        <option name="packagetype" value="php"/>
-       <option name="notes" value="Latest info is available at http://github.com/technosophos/Phing-Pirum"/>
+       <option name="notes" value="Latest info is available at http://github.com/technosophos/Phing-Pirum. pear.querypath.org runs Pirum."/>
        <option name="outputdirectory" value="./${builddir}"/>
        <option name="packagedirectory" value="./${releasedir}"/>
        <mapping name="maintainers">
