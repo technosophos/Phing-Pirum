@@ -1,1 +1,4 @@
-test/fakepear/*
+bin/build/*
+dist/*
+tests/.phar/*
+tests/fakepear/*

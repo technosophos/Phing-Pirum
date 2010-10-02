@@ -56,6 +56,7 @@ The end.
   <property name="builddir" value="./bin/build"/>
   <property name="docsdir" value="./doc"/>
   <property name="packagedir" value="./dist"/>
+  <property name="pearchannel" value="../pear.querypath.org/pear"/>
   
   <!-- Set the include path to get to our tasks. Then load our tasks. -->
   <includepath classpath="./src"/>
@@ -80,23 +81,13 @@ The end.
     <include name="**/*Test.php" />
   </fileset>
   
-  <!-- Examples -->
-  <fileset id="examplecode" dir="./examples">
-    <include name="**/*" />
-  </fileset>
-  
-  <!-- DocBook Tutorials -->
-  <fileset id="tutorials" dir="./tutorials">
-    <include name="**/*" />
-  </fileset>
-  
   <!-- Documentation -->
   <fileset id="docs" dir="./doc">
     <include name="**/*" />
   </fileset>
   
   <!-- BUILD: The primary build target. -->
-  <target name="build" depends="lint, setup, docBuild, fullBuild"
+  <target name="build" depends="lint, setup, fullBuild"
     description="Generate docs, minimal, and full builds and then creates packages."
     ></target>
   
@@ -118,7 +109,6 @@ The end.
     <mkdir dir="${releasedir}/src"/>
     <mkdir dir="${releasedir}/examples"/>
     <mkdir dir="${releasedir}/tests"/>
-    <mkdir dir="${releasedir}/tutorials"/>
     <mkdir dir="${releasedir}/doc"/>
     
     <!-- Copy license files. -->
@@ -127,7 +117,7 @@ The end.
     </copy>
     
     <!-- Copy source code, doing token replacement on version. -->
-    <copy todir="${releasedir}/src">
+    <copy todir="${releasedir}">
       <filterchain>
         <replacetokens begintoken="@" endtoken="@">
           <token key="UNSTABLE" value="${version}"/>
@@ -135,34 +125,52 @@ The end.
       </filterchain>
       <fileset refid="sourcecode"/>
     </copy>
+    
+    <!-- Generate PEAR package. -->
+    <pearpkg2 name="PhingPirum" dir="./">
+       <fileset dir="${releasedir}">
+         <include name="**/**"/>
+       </fileset>
+       <option name="uri" value="http://querypath.org"/>
+       <option name="packagefile" value="package2.xml"/>
+       <option name="channel" value="pear.querypath.org"/>
+       
+       <option name="baseinstalldir" value="PhingPirum"/>
 
-    <!-- Copy examples. -->
-    <copy todir="${releasedir}/examples">
-      <fileset refid="examplecode"/>
-    </copy>
+       <option name="summary" value="Phing integration with Pirum"/>
+       <option name="description" value="Provides Pirum tasks for Phing. Useful for post-processing HTML and XML during builds. http://pirum-project.org"/>
+       <option name="apiversion" value="${version}"/>
+       <option name="apistability" value="stable"/>
+       <option name="releaseversion" value="${version}"/>
+       <option name="releasestability" value="stable"/>
+       <option name="license" value="MIT License"/>
+       <option name="phpdep" value="5.0.0"/>
+       <option name="pearinstallerdep" value="1.4.6"/>
+       <option name="packagetype" value="php"/>
+       <option name="notes" value="Latest info is available at http://github.com/technosophos/Phing-Pirum"/>
+       <option name="outputdirectory" value="./${builddir}"/>
+       <option name="packagedirectory" value="./${releasedir}"/>
+       <mapping name="maintainers">
+        <element>
+         <element key="handle" value="technosophos"/>
+         <element key="name" value="M Butcher"/>
+         <element key="email" value="matt@aleph-null.tv"/>
+         <element key="role" value="lead"/>
+        </element>
+       </mapping>
+    </pearpkg2>
     
-    <!-- Copy tests. -->
-    <copy todir="${releasedir}/tests">
-      <fileset refid="unittests"/>
-    </copy>
-    
-    <!-- Copy tutorials -->
-    <copy todir="${releasedir}/tutorials">
-      <fileset refid="tutorials"/>
-    </copy>
-    
-    <!-- Copy documentation --> 
-    <copy todir="${releasedir}/doc">
-      <fileset refid="docs"/>
-    </copy>
-    
+    <move file="${builddir}/package2.xml" tofile="${builddir}/package.xml"/>
+
     <!-- Create tgz and zip versions. -->
     <tar destfile="${packagedir}/PhingPirum-${version}.tgz" compression="gzip">
       <fileset dir="${builddir}">
         <include name="Phing-Pirum-${version}/**/*"/>
+        <include name="package.xml"/>
       </fileset>
     </tar>
-    <zip destfile="${packagedir}/PhingPirum-${version}.zip" basedir="${releasedir}"/>
+    
+    <pirumadd targetdir="${pearchannel}" packagefile="${packagedir}/PhingPirum-${version}.tgz"/>
   </target>
   
   <!-- Check syntax -->
@@ -172,41 +180,6 @@ The end.
     </phplint>
   </target>
   
-  <!-- Build documentation -->
-  <target name="doc" depends="lint,setup" description="Generate API docs.">
-    <delete dir="${docsdir}"/>
-    <phpdoc title="Phing-Pirum ${version}"
-      sourcecode="yes"
-      destdir="${docsdir}"
-      output="HTML:Smarty:" 
-      defaultcategoryname="Phing-Pirum"
-      defaultpackagename="Phing-Pirum"
-      examplesdir="examples"
-      quiet="true"
-      >
-      <!-- 
-        output="HTML:frames:phphtmllib"
-      -->
-      <fileset refid="sourcecode"/>
-      <fileset refid="tutorials"/>
-      <fileset refid="examplecode"/>
-      <projdocfileset dir=".">
-        <include name="README.mdown"/>
-        <include name="INSTALL.mdown"/>
-        <include name="COPYING-MIT.txt"/>
-      </projdocfileset>
-    </phpdoc>
-    <!-- Need to replace version information in generated documentation -->
-    <reflexive>
-      <fileset refid="docs"/>
-      <filterchain>
-        <replacetokens begintoken="@" endtoken="@">
-          <token key="UNSTABLE" value="${version}"/>
-        </replacetokens>
-      </filterchain>
-    </reflexive>
-  </target>
-
   <!-- Run a full test and format an HTML report -->
   <target name="test" depends="lint" description="Run full tests">
     
@@ -227,32 +200,5 @@ The end.
     </delete>
   </target>
   
-  <target name="docBuild" description="Build a package containing just docs." 
-    depends="setup,doc">
-    <property name="releasedir" value="${builddir}/Phing-Pirum-${version}-docs"/>
-    <delete dir="${releasedir}" />
-    
-    <!-- Make all necessary directories. -->
-    <mkdir dir="${releasedir}"/>
-    
-    <!-- Copy license files. -->
-    <copy todir="${releasedir}">
-      <fileset refid="licensefiles"/>
-    </copy>
-        
-    <!-- Copy documentation --> 
-    <copy todir="${releasedir}/doc">
-      <fileset refid="docs"/>
-    </copy>
-    
-    <!-- Create tgz and zip versions. -->
-    <tar destfile="${packagedir}/PhingPirum-${version}-docs.tgz" compression="gzip">
-      <fileset dir="${builddir}">
-        <include name="PhingPirum-${version}-docs/**/*"/>
-      </fileset>
-    </tar>
-    <zip destfile="${packagedir}/PhingPirum-${version}-docs.zip" basedir="${releasedir}"/>
-  </target>
-
   
 </project>
