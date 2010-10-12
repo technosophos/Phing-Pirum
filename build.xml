@@ -100,7 +100,7 @@ The end.
   
   <!-- Build the full package -->
   <target name="fullBuild" description="Full Phing-Pirum build, including docs."
-    depends="setup">
+    depends="setup,setPearStability">
     <property name="releasedir" value="${builddir}/PhingPirum-${version}" override="true"/>
     <delete dir="${releasedir}" />
     
@@ -140,9 +140,9 @@ The end.
        <option name="summary" value="Pirum tasks for Phing"/>
        <option name="description" value="Provides Pirum integration with Phing. Easily build PEAR channels and add packages to your channels. http://pirum-project.org"/>
        <option name="apiversion" value="${version}"/>
-       <option name="apistability" value="stable"/>
+       <option name="apistability" value="${stability}"/>
        <option name="releaseversion" value="${version}"/>
-       <option name="releasestability" value="stable"/>
+       <option name="releasestability" value="${stability}"/>
        <option name="license" value="MIT License"/>
        <option name="phpdep" value="5.0.0"/>
        <option name="pearinstallerdep" value="1.4.6"/>
@@ -158,6 +158,15 @@ The end.
          <element key="role" value="lead"/>
         </element>
        </mapping>
+       <mapping name="deps">
+          <element>
+            <element key="channel" value="pear.pirum-project.org"/>
+            <element key="name" value="pirum/Pirum"/>
+            <element key="version" value="0.9.0"/>
+            <element key="max" value="1.0.99"/>
+            <element key="recommended" value="1.0.0"/>
+          </element>
+        </mapping>
     </pearpkg2>
     
     <move file="${builddir}/package2.xml" tofile="${builddir}/package.xml"/>
@@ -200,5 +209,27 @@ The end.
     </delete>
   </target>
   
+  <target name="setPearStability" depends="setup">
+    <property name="stability">stable</property>
+    <if>
+      <contains string="${version}" substring="dev"/>
+      <then>
+        <property name="stability" override="true">snapshot</property>
+      </then>
+      <elseif>
+        <contains string="${version}" substring="alpha"/>
+        <then>
+          <property name="stability" override="true">alpha</property>
+        </then>
+      </elseif>
+      <elseif>
+        <contains string="${version}" substring="beta"/>
+        <then>
+          <property name="stability" override="true">beta</property>
+        </then>
+      </elseif>
+    </if>
+    <echo>${stability}</echo>
+  </target>
   
 </project>
