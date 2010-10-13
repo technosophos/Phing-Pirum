@@ -7,11 +7,15 @@ class PirumAddTask extends Task {
   protected $target = NULL;
   protected $package = NULL;
   
+  protected $pirumPath = '/usr/bin/pirum';
+  
   public function init(){
-    // Find and include 'pirum'
-    require_once '/usr/bin/pirum';
+    
   }
   public function main(){
+    
+    // Find and include 'pirum'
+    require_once $this->pirumPath;
     
     if (empty($this->target)) {
       throw new BuildException('You must specify a directory using \'targetdir\'.');
@@ -45,5 +49,9 @@ class PirumAddTask extends Task {
   
   public function setPackageFile($file) {
     $this->package = $file;
+  }
+  
+  public function setPirumPath($filename) {
+    $this->pirumPath = $filename;
   }
 }

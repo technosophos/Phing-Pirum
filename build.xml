@@ -161,7 +161,7 @@ The end.
        <mapping name="deps">
           <element>
             <element key="channel" value="pear.pirum-project.org"/>
-            <element key="name" value="pirum/Pirum"/>
+            <element key="name" value="Pirum"/>
             <element key="version" value="0.9.0"/>
             <element key="max" value="1.0.99"/>
             <element key="recommended" value="1.0.0"/>
